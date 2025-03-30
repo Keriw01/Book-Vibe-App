@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import {
+  MDBContainer,
+  MDBInput,
+  MDBBtn
+} from 'mdb-react-ui-kit';
 
 const Register = () => {
   const [fullName, setFullName] = useState('');
@@ -14,18 +19,17 @@ const Register = () => {
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
-  }
+  };
 
   const validatePassword = (password: string) => {
     const re = /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).*$/;
     return re.test(password);
-  }
+  };
 
   const validateName = (name: string) => {
     const re = /^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ .'-]+$/;
     return re.test(name);
   };
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +46,7 @@ const Register = () => {
     }
 
     if (!validateName(fullName)) {
-      setError('Imię i nazwisko może zawierać tylko litery, spacje oraz znaki .\'-');
+      setError('Imię i nazwisko może zawierać tylko litery, spacje oraz znaki .\'-\'');
       return;
     }
 
@@ -84,76 +88,71 @@ const Register = () => {
     }
   };
 
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded shadow-md w-96">
-        <h2 className="text-2xl mb-4 text-center">Rejestracja</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block mb-2">Imię i nazwisko</label>
-            <input 
-              type="text" 
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-              required 
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Email</label>
-            <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-              required 
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Hasło</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-              required 
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Hasło musi mieć co najmniej 8 znaków i zawierać cyfrę, małą i wielką literę
-            </p>
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Potwierdź hasło</label>
-            <input 
-              type="password" 
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border rounded"
-              required 
-            />
-          </div>
-          <button 
-            type="submit" 
-            className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600"
-          >
-            Zarejestruj się
-          </button>
-        </form>
-        <div className="mt-4 text-center">
+    <MDBContainer className="p-3 my-5 d-flex flex-column w-25">
+      <h2 className="text-2xl mb-4 text-center">Rejestracja</h2>
+      
+      {error && <div className="alert alert-danger mb-4">{error}</div>}
+
+
+      <form onSubmit={handleSubmit}>
+        <MDBInput 
+          wrapperClass='mb-4' 
+          label='Imię i nazwisko' 
+          id='fullName'
+          type='text'
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          required
+        />
+
+        <MDBInput 
+          wrapperClass='mb-4' 
+          label='Email' 
+          id='email' 
+          type='email'
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        
+        <MDBInput 
+          wrapperClass='mb-4' 
+          label='Hasło' 
+          id='password' 
+          type='password'
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <div className="mb-4 text-muted small">
+          Hasło musi mieć co najmniej 8 znaków i zawierać cyfrę, małą i wielką literę
+        </div>
+
+        <MDBInput 
+          wrapperClass='mb-4' 
+          label='Potwierdź hasło' 
+          id='confirmPassword' 
+          type='password'
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+        />
+
+        <MDBBtn type="submit" color='success' className="mb-4" block>
+          Zarejestruj się
+        </MDBBtn>
+
+        <div className="text-center">
           <p>
             Masz już konto? 
-            <Link 
-              to="/login" 
-              className="text-blue-500 ml-2 hover:underline"
-            >
+            <Link to="/login" className="text-primary ml-2">
               Zaloguj się
             </Link>
           </p>
         </div>
-      </div>
-    </div>
+      </form>
+    </MDBContainer>
   );
 };
 
