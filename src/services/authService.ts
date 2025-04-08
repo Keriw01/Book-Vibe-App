@@ -10,6 +10,15 @@ interface RegisterCredentials extends LoginCredentials {
 }
 
 export const authService = {
+  initializeCsrf: async () => {
+    try {
+      await axiosInstance.get('/auth/csrf');
+    } catch (error) {
+      console.error('CSRF initialization error', error);
+    }
+  },
+
+
   login: async (credentials: LoginCredentials) => {
     try {
       const response = await axiosInstance.post('/auth/login', credentials);

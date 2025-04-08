@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import { useAuth } from './context/AuthContext';
 import Register from './components/Register';
+import { authService } from './services/authService';
 
 
 const PrivateRoute: React.FC<{children: React.ReactNode}> = ({ children }) => {
@@ -13,6 +14,11 @@ const PrivateRoute: React.FC<{children: React.ReactNode}> = ({ children }) => {
 };
 
 const App = () => {
+
+  useEffect(() => {
+    authService.initializeCsrf();
+  }, []);
+
   return (
     <AuthProvider>
       <Router>
