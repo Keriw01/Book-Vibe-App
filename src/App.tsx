@@ -1,43 +1,95 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
-import { useAuth } from './context/AuthContext';
 import Register from './components/Register';
 import { authService } from './services/authService';
 
 
 const PrivateRoute: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
-const App = () => {
+const PublicRoute: React.FC<{children: React.ReactNode}> = ({ children }) => {
+    const { isAuthenticated, isLoading } = useAuth();
 
+    if (isLoading) {
+      return <div>Loading...</div>;
+    }
+
+    return isAuthenticated ? <Navigate to="/dashboard" replace /> : <>{children}</>;
+};
+
+
+const AppContent = () => {
   useEffect(() => {
-    authService.initializeCsrf();
+    console.log('AppContent mounted, initializing CSRF...');
+    authService.initializeCsrf().catch(error => {
+      console.error('Initial CSRF token fetch failed:', error);
+    });
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        console.log('Page loaded from bfcache, consider reloading or re-checking auth.');
+
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+
+    return () => window.removeEventListener('pageshow', handlePageShow);
   }, []);
 
   return (
-    <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route 
-            path="/dashboard" 
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/register"
+            element={
+              <PublicRoute>
+                <Register />
+              </PublicRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
             element={
               <PrivateRoute>
                 <Dashboard />
               </PrivateRoute>
-            } 
+            }
           />
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          {}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+           {}
+           <Route path="*" element={<div>404 Not Found</div>} />
         </Routes>
       </Router>
+  );
+};
+
+
+const App = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
     </AuthProvider>
   );
 };
+
 
 export default App;

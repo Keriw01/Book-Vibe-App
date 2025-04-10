@@ -1,69 +1,62 @@
-import axiosInstance from './axiosConfig';
+import axiosInstance, { setAxiosCsrfToken } from './axiosConfig';
+import { LoginResponse } from '../responses/LoginResponse';
+import { UserDto } from '../dtos/UserDto';
 
 interface LoginCredentials {
   email: string;
   password: string;
 }
 
-interface RegisterCredentials extends LoginCredentials {
+interface RegisterCredentials {
+  email: string;
+  password: string;
   fullName: string;
 }
 
+interface CsrfTokenResponse {
+  csrfToken: string;
+  headerName: string;
+}
+
 export const authService = {
-  initializeCsrf: async () => {
+  async initializeCsrf(): Promise<void> {
     try {
-      await axiosInstance.get('/auth/csrf');
+      const response = await axiosInstance.get<CsrfTokenResponse>('/auth/csrf-token');
+      const token = response.data.csrfToken;
+
+      setAxiosCsrfToken(token);
+
+      console.log('CSRF token initialized/refreshed.');
     } catch (error) {
-      console.error('CSRF initialization error', error);
+      console.error('CSRF initialization error:', error);
+      setAxiosCsrfToken(null);
     }
   },
 
+  async login(credentials: LoginCredentials): Promise<LoginResponse> {
+    // await this.initializeCsrf();
+    const response = await axiosInstance.post<LoginResponse>('/auth/login', credentials);
 
-  login: async (credentials: LoginCredentials) => {
-    try {
-      const response = await axiosInstance.post('/auth/login', credentials);
-      const { token } = response.data;
-      localStorage.setItem('token', token);
-      const userData = await axiosInstance.get('/user/me');
-      return {
-        id: userData.data.id,
-        email: userData.data.email,
-        fullName: userData.data.fullName
-      };
-    } catch (error) {
-      console.error('Login error', error);
-      throw error;
-    }
+    return response.data;
   },
 
-  register: async (credentials: RegisterCredentials) => {
-    try {
-      const response = await axiosInstance.post('/auth/register', credentials);
-      return response.data;
-    } catch (error) {
-      console.error('Registration error', error);
-      throw error;
-    }
+  async register(credentials: RegisterCredentials): Promise<LoginResponse> {
+    // await this.initializeCsrf();
+    const response = await axiosInstance.post<LoginResponse>('/auth/register', credentials);
+
+    return response.data;
   },
 
-  logout: () => {
-    localStorage.removeItem('token');
+  async logout(): Promise<void> {
+    // await this.initializeCsrf();
+    await axiosInstance.post('/auth/logout');
+
+    console.log('Logout request sent.');
   },
 
-  getCurrentUser: async () => {
-    try {
-      const response = await axiosInstance.get('/user/me');
+  async getCurrentUser(): Promise<UserDto> {
+    const response = await axiosInstance.get<UserDto>('/user/me');
 
-      const userData = {
-        id: response.data.id,
-        fullName: response.data.fullName,
-        email: response.data.email
-      };
-      
-      return userData;
-    } catch (error) {
-      console.error('Fetch user error', error);
-      throw error;
-    }
-  }
+    return response.data;
+  },
 };

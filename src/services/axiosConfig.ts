@@ -1,34 +1,28 @@
 import axios from 'axios';
 
-const getCookie = (name: string): string | null => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-  return null;
+let currentCsrfToken: string | null = null;
+
+export const setAxiosCsrfToken = (token: string | null) => {
+  console.log(`Setting CSRF token in axiosConfig to: ${token}`);
+  currentCsrfToken = token;
 };
 
 const axiosInstance = axios.create({
   baseURL: 'http://localhost:8080',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  withCredentials: true 
+  withCredentials: true,
 });
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    if (['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase() || '')) {
-      const csrfToken = getCookie('XSRF-TOKEN');
-      if (csrfToken) {
-        config.headers['X-XSRF-TOKEN'] = csrfToken;
+    const method = config.method?.toLowerCase();
+    if (method === 'post' || method === 'put' || method === 'delete' || method === 'patch') {
+      if (currentCsrfToken) {
+        config.headers['X-XSRF-TOKEN'] = currentCsrfToken;
+        console.log('X-XSRF-TOKEN header set from variable:', currentCsrfToken);
+      } else {
+        console.warn('CSRF token variable is null. CSRF header not set. Ensure initializeCsrf was called and succeeded.');
       }
     }
-
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`;
-    }
-  
     return config;
   },
   (error) => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import {
   MDBContainer,
   MDBRow,
@@ -8,7 +9,11 @@ import {
   MDBCardTitle,
   MDBCardText,
   MDBCardImage,
-  MDBBtn
+  MDBBtn,
+  MDBDropdown,
+  MDBDropdownToggle,
+  MDBDropdownMenu,
+  MDBDropdownItem
 } from 'mdb-react-ui-kit';
 
 interface Book {
@@ -56,6 +61,7 @@ const sampleBooks: Book[] = [
 ];
 
 function Dashboard() {
+  const { logout } = useAuth();
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,7 +100,19 @@ function Dashboard() {
   return (
     <MDBContainer className="my-5">
       <h1 className="text-center mb-4">Katalog Książek</h1>
-
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h1 className="mb-0">Katalog Książek</h1>
+        <MDBDropdown>
+          <MDBDropdownToggle color='primary' className='me-1' caret>
+            Menu
+          </MDBDropdownToggle>
+          <MDBDropdownMenu>
+            <MDBDropdownItem link href='/profile'>Profil</MDBDropdownItem>
+            <MDBDropdownItem divider />
+            <MDBDropdownItem link onClick={logout}>Wyloguj</MDBDropdownItem>
+          </MDBDropdownMenu>
+        </MDBDropdown>
+      </div>
       {loading ? (
         <div className="text-center">
           <div className="spinner-border text-primary" role="status">
