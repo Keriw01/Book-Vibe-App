@@ -1,20 +1,26 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode, useCallback } from 'react';
-import { authService } from '../services/authService';
-import { UserDto } from '../dtos/UserDto';
-
-interface User {
-  id: number;
-  email: string;
-  fullName: string;
-}
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  ReactNode,
+  useCallback,
+} from "react";
+import { authService } from "../services/authService";
+import { UserDto } from "../dtos/UserDto";
 
 interface AuthContextType {
-  user: User | null;
+  user: UserDto | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, fullName: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    fullName: string
+  ) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
+  hasRole: (roleName: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -24,15 +30,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  const hasRole = useCallback(
+    (roleName: string): boolean => {
+      return user?.role?.name === roleName;
+    },
+    [user]
+  );
+
   const checkAuthStatus = useCallback(async () => {
     setIsLoading(true);
     try {
       const userData = await authService.getCurrentUser();
-      setUser(userData);
-      setIsAuthenticated(true);
-      console.log('Auth check successful:', userData);
+
+      if (userData && userData.role && userData.role.name) {
+        setUser(userData);
+        setIsAuthenticated(true);
+        console.log("Auth check successful:", userData);
+      } else {
+        console.warn("Auth check returned incomplete user data:", userData);
+        setUser(null);
+        setIsAuthenticated(false);
+      }
     } catch (error) {
-      console.log('Auth check failed:', error);
+      console.log("Auth check failed (user likely not logged in):", error);
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -41,7 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    console.log('AuthProvider mounted, checking auth status...');
+    console.log("AuthProvider mounted, checking auth status...");
     checkAuthStatus();
   }, [checkAuthStatus]);
 
@@ -51,25 +71,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userData = loginResponse.user;
       setUser(userData);
       setIsAuthenticated(true);
-      console.log('Login successful:', userData);
+      console.log("Login successful:", userData);
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
       setUser(null);
       setIsAuthenticated(false);
       throw error;
     }
   };
 
-  const register = async (email: string, password: string, fullName: string) => {
+  const register = async (
+    email: string,
+    password: string,
+    fullName: string
+  ) => {
     try {
-      const registerResponse = await authService.register({ email, password, fullName });
+      const registerResponse = await authService.register({
+        email,
+        password,
+        fullName,
+      });
 
       const userData = registerResponse.user;
       setUser(userData);
       setIsAuthenticated(true);
-      console.log('Registration successful:', userData);
+      console.log("Registration successful:", userData);
     } catch (error) {
-      console.error('Registration failed:', error);
+      console.error("Registration failed:", error);
       setUser(null);
       setIsAuthenticated(false);
       throw error;
@@ -80,20 +108,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     try {
       await authService.logout();
-      console.log('Logout successful on backend.');
+      console.log("Logout successful on backend.");
     } catch (error) {
-      console.error('Logout failed on backend:', error);
-
+      console.error("Logout failed on backend:", error);
     } finally {
       setUser(null);
       setIsAuthenticated(false);
       setIsLoading(false);
-      console.log('Frontend state cleared after logout attempt.');
+      console.log("Frontend state cleared after logout attempt.");
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated, isLoading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        register,
+        logout,
+        isAuthenticated,
+        isLoading,
+        hasRole,
+      }}
+    >
       {!isLoading ? children : <div>Loading Application...</div>} {}
     </AuthContext.Provider>
   );
@@ -102,7 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === null) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

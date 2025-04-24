@@ -1,4 +1,5 @@
-import axiosInstance, { setAxiosCsrfToken } from './axiosConfig';
+// import axiosInstance, { setAxiosCsrfToken } from './axiosConfig';
+import axiosInstance from './axiosConfig';
 import { LoginResponse } from '../responses/LoginResponse';
 import { UserDto } from '../dtos/UserDto';
 
@@ -13,42 +14,29 @@ interface RegisterCredentials {
   fullName: string;
 }
 
-interface CsrfTokenResponse {
-  csrfToken: string;
-  headerName: string;
-}
-
 export const authService = {
   async initializeCsrf(): Promise<void> {
     try {
-      const response = await axiosInstance.get<CsrfTokenResponse>('/auth/csrf-token');
-      const token = response.data.csrfToken;
-
-      setAxiosCsrfToken(token);
-
-      console.log('CSRF token initialized/refreshed.');
+      await axiosInstance.get('/auth/csrf-token');
+      console.log('CSRF cookie should be initialized/refreshed by backend.');
     } catch (error) {
-      console.error('CSRF initialization error:', error);
-      setAxiosCsrfToken(null);
+      console.error('CSRF initialization request failed:', error);
     }
   },
 
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
-    // await this.initializeCsrf();
     const response = await axiosInstance.post<LoginResponse>('/auth/login', credentials);
 
     return response.data;
   },
 
   async register(credentials: RegisterCredentials): Promise<LoginResponse> {
-    // await this.initializeCsrf();
     const response = await axiosInstance.post<LoginResponse>('/auth/register', credentials);
 
     return response.data;
   },
 
   async logout(): Promise<void> {
-    // await this.initializeCsrf();
     await axiosInstance.post('/auth/logout');
 
     console.log('Logout request sent.');

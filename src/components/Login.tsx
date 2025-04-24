@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  MDBContainer,
-  MDBInput,
-  MDBBtn
-} from 'mdb-react-ui-kit';
+import { MDBContainer, MDBInput, MDBBtn } from "mdb-react-ui-kit";
 
 const Login = () => {
   const { isAuthenticated } = useAuth();
@@ -17,9 +13,9 @@ const Login = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
-  },);
+  });
 
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -61,40 +57,42 @@ const Login = () => {
   return (
     <MDBContainer className="p-3 my-5 d-flex flex-column w-25">
       <h2 className="text-2xl mb-4 text-center">Logowanie</h2>
-      
+
       {error && <div className="alert alert-danger mb-4">{error}</div>}
 
       <form onSubmit={handleSubmit}>
-        <MDBInput 
-          wrapperClass='mb-4' 
-          label='Email' 
-          id='email' 
-          type='email'
+        <MDBInput
+          wrapperClass="mb-4"
+          label="Email"
+          id="email"
+          type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        
-        <MDBInput 
-          wrapperClass='mb-4' 
-          label='Hasło' 
-          id='password' 
-          type='password'
+
+        <MDBInput
+          wrapperClass="mb-4"
+          label="Hasło"
+          id="password"
+          type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
 
         <div className="d-flex justify-content-end mx-3 mb-4">
-          
           <Link to="/forgot-password">Zapomniałeś hasła?</Link>
         </div>
 
-        <MDBBtn type="submit" className="mb-4" block>Zaloguj się</MDBBtn>
+        <MDBBtn type="submit" className="mb-4" block>
+          Zaloguj się
+        </MDBBtn>
 
         <div className="text-center">
-          <p>Nie masz konta? <Link to="/register">Zarejestruj się</Link></p>
-        
+          <p>
+            Nie masz konta? <Link to="/register">Zarejestruj się</Link>
+          </p>
         </div>
       </form>
     </MDBContainer>
