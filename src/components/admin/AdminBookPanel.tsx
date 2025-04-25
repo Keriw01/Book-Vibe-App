@@ -25,7 +25,7 @@ const AdminBookPanel = () => {
     <MDBContainer>
       <MDBCard>
         <MDBCardBody>
-          <h2>Panel Administratora (Moderatora)</h2>
+          <h2>Panel Moderatora</h2>
 
           <MDBTabs fill className="mb-3">
             <MDBTabsItem>
